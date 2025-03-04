@@ -52,4 +52,5 @@ async def user_login(db: db_dependency,login_user_request: UserRequest):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     if not pwd_context.verify(login_user_request.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
-    return {"access_token": create_access_token(data={"sub": user.username})}
+    token = create_access_token(user.username, user.id, timedelta(minutes=15))
+    return {"access_token": token, "token_type": "bearer"}
