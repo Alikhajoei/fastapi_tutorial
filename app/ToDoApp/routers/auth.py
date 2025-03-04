@@ -9,7 +9,12 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import jwt,JWTError
 from fastapi.security import OAuth2PasswordBearer
-router = APIRouter()
+
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"]
+)
 
 
 SECRET_KEY = "cf51f9b5a5d199540dcb6bbbf8f42d4dd999a22c892bd35a61535c56ad52153d"
