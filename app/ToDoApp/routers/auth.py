@@ -7,12 +7,14 @@ from database import SessionLocal
 from models import Users
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from jose import jwt
+from jose import jwt,JWTError
+from fastapi.security import OAuth2PasswordBearer
 router = APIRouter()
 
 
 SECRET_KEY = "cf51f9b5a5d199540dcb6bbbf8f42d4dd999a22c892bd35a61535c56ad52153d"
 ALGORITHM = "HS256"
+
 
 def get_db():
     db = SessionLocal()
@@ -24,6 +26,7 @@ def get_db():
 
 db_dependency =  Annotated[Session,Depends(get_db)]
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
 class UserRequest(BaseModel):
     username: str = Path(min_length=3, max_length=20)
@@ -54,3 +57,19 @@ async def user_login(db: db_dependency,login_user_request: UserRequest):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
     token = create_access_token(user.username, user.id, timedelta(minutes=15))
     return {"access_token": token, "token_type": "bearer"}
+
+
+
+
+async def get_user(token: Annotated[str, Depends(oauth_bearer)]):
+    try:
+        payload = jwt.decode(token,SECRET_KEY,algorithms=ALGORITHM)
+        username: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        if username is None or user_id is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return {"username": username, "user_id": user_id}
+        
+
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
