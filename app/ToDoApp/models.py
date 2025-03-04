@@ -19,4 +19,4 @@ class Todos(Base):
     title = Column(String)
     priority = Column(Integer, default=0)
     completed = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id")) # foreign key to "users" table 
